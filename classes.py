@@ -2,30 +2,75 @@ from collections import UserDict
 from datetime import datetime
 
 
+def convert_to_date(birthday: str = ""):
+    try:
+        birthday = datetime.strptime(birthday, '%m.%d.%Y')
+    except ValueError:
+        try:
+            birthday = datetime.strptime(birthday, '%m.%d')
+            birthday = birthday.replace(year=2)
+        except ValueError:
+            birthday = None
+    finally:
+        return birthday
+
+
 class Field:
-    def __init__(self, name):
-        self.value = name
+    def __init__(self):
+        self.__value = None
 
 
 class Name(Field):
-    pass
+    def __init__(self, name: str):
+        super().__init__()
+        self.value = name
+
+    @property
+    def value(self):
+        return self.__value
+
+    @value.setter
+    def value(self, name: str = ""):
+        if name:
+            self.__value = name
 
 
 class Phone(Field):
-    def __init__(self, phone_number=""):
-        super().__init__(self)
+    def __init__(self, phone_number=None):
+        super().__init__()
+        self.__value = None
         self.value = phone_number
+
+    @property
+    def value(self):
+        return self.__value
+
+    @value.setter
+    def value(self, phone_number: str = ""):
+        if phone_number:
+            phone_number = phone_number.strip().replace(" ", "").replace("(", "").replace(")", "").replace("-", "")
+            if phone_number.startswith("+"):
+                if len(phone_number[1:]) == 12 and phone_number[1:].isdigit():
+                    self.__value = phone_number
+            else:
+                if phone_number.isdigit and (len(phone_number) == 12 or
+                                             len(phone_number) == 10 or len(phone_number) == 7):
+                    self.__value = phone_number
 
 
 class Birthday(Field):
     def __init__(self, birthday=""):
-        super().__init__(self)
-        try:
-            birthday = datetime.strptime(birthday, '%m.%d.%Y')
-        except ValueError:
-            birthday = datetime.strptime(birthday, '%m.%d')
-            birthday = birthday.replace(year=1)
-        self.value = birthday
+        super().__init__()
+        self.value = convert_to_date(birthday)
+
+    @property
+    def value(self):
+        return self.__value
+
+    @value.setter
+    def value(self, birthday: datetime):
+        if birthday.year > 1:
+            self.__value = birthday
 
 
 class Record:
@@ -41,7 +86,7 @@ class Record:
             string += f"\n\tPhone numbers: {', '.join([x.value for x in self.phones])}"
         if self.birthday:
             birthday = self.birthday.value
-            if birthday.year > 1:
+            if birthday.year > 2:
                 string += f"\n\tBirthday: {birthday.strftime('%d %B %Y')}"
             else:
                 string += f"\n\tBirthday: {birthday.strftime('%d %B')}"

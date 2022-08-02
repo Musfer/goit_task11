@@ -45,9 +45,15 @@ def add_contact(book: AddressBook, data: str):
     elif name in book.data.keys():
         return f"Contact '{name}' already exists"
     else:
-        record = Record(Name(name), [Phone(number)] if number else [])
-        book.add_record(record)
-        return f"Created contact '{name}': '{number}'"
+        phone_number = Phone(number)
+        if phone_number.value:
+            record = Record(Name(name), [phone_number])
+            book.add_record(record)
+            return f"Created contact '{name}': '{number}'"
+        else:
+            record = Record(Name(name), [])
+            book.add_record(record)
+            return f"No valid phone number found. Created contact '{name}' with no phone numbers."
 
 
 def show_contact(book: AddressBook, data: str):
@@ -80,7 +86,7 @@ def show_all(book: AddressBook, text: str = ""):
     try:
         n = int(text.strip())
     except ValueError:
-        n = 2
+        n = 10
     if not book.data:
         return "Your phone book is empty."
     else:
@@ -88,7 +94,7 @@ def show_all(book: AddressBook, text: str = ""):
             book.showing_records = True
             book.reset_iterator(n)
         try:
-            return next(book.show) + f"Press enter to show next {n} contacts or 'reset' to go to the start"
+            return next(book.show) + f"Press 'Enter' to show next '{n}' contacts or 'reset' to go to the start"
         except StopIteration:
             book.showing_records = False
             book.reset_iterator(n)
@@ -115,8 +121,12 @@ def add_number(book: AddressBook, data: str):
         add_contact(book, data)
         return f"Created a new contact '{name}' with number '{number}'"
     else:
-        book.data[name].add_number(Phone(number))
-        return f"Number '{number}' has been added to contact '{name}'"
+        phone_number = Phone(number)
+        if phone_number.value:
+            book.data[name].add_number(phone_number)
+            return f"Number '{number}' has been added to contact '{name}'"
+        else:
+            return f"Invalid phone number"
 
 
 def delete_number(book: AddressBook, data: str):
@@ -180,5 +190,7 @@ def help_me(*_):
            "\tdelete birthday 'name': deletes birthday from the contact\n" +\
            "\tdelete contact 'name': deletes contact 'name'\n" + \
            "\tadd phone 'name' 'phone numer': adds the phone number to the existing contact or creates a new one\n" + \
+           "\t\tphone number should be 7 digits long + optional 3 digits of city code\n" + \
+           "\t\t+ optional 2 digits of country code + optional '+' sight\n" + \
            "\tdelete phone 'name' 'phone number': deletes the phone number from contact\n" + \
            "\texit: close the assistant\n"
